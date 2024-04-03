@@ -1,12 +1,11 @@
 import React from 'react';
-import { createMonacoEditor } from './monaco/setupenv';
+import EditorInstance from './features/editor';
 
 //import * as monaco from 'monaco-editor';
 //import './App.css';
 
 function App() {
-	React.useEffect(createMonacoEditor, []);
-	return <></>;
+	return <EditorInstance />;
 }
 
 export default App;
