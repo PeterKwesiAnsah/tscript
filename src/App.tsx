@@ -1,6 +1,5 @@
-import React from 'react';
 import EditorInstance from './features/editor';
-
+import './index.css';
 //import * as monaco from 'monaco-editor';
 //import './App.css';
 
