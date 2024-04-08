@@ -43,7 +43,6 @@ const modelStore = create<{
 	},
 }));
 
-export const useGetModels = modelStore((store) => store.models());
-export const useGetActiveModal = modelStore(
-	(store) => store.models()[store.activeModelIndex]
-);
+export const useGetModels = () => modelStore((store) => store.models());
+export const useGetActiveModel = () =>
+	modelStore((store) => store.models()[store.activeModelIndex]);
