@@ -1,10 +1,11 @@
-import EditorInstance from './features/editor';
-import './index.css';
 //import * as monaco from 'monaco-editor';
 //import './App.css';
 
+//import EditorInstance from './features/editor';
+import Toolbar from './features/toolbar';
+
 function App() {
-	return <EditorInstance />;
+	return <Toolbar />;
 }
 
 export default App;

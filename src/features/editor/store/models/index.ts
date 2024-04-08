@@ -1,11 +1,18 @@
 import { create } from 'zustand';
 import { editorTabs } from '../../components/tab/types';
 
+export const DEFAULT_ACTIVE_MODEL_INDEX = 0;
+
 const modelStore = create<{
 	models: () => editorTabs;
 	activeModelIndex: number;
-}>((set) => ({
-	activeModelIndex: 0,
+	actions: {
+		addModel: (model: editorTabs[number]) => void;
+		removeModal: (fileName: string) => void;
+		changeActiveModal: (modelIndex: number) => void;
+	};
+}>((set, store) => ({
+	activeModelIndex: DEFAULT_ACTIVE_MODEL_INDEX,
 	models: () => [
 		{
 			fileName: 'index.js',
@@ -18,31 +25,43 @@ const modelStore = create<{
 			code: "function hello() {\n\talert('Hello world!');\n}",
 		},
 	],
-	addModel(model: editorTabs[number]) {
-		const incomingFileName = model.fileName;
-		const isFileAlreadyExist = this.models().some(
-			(modal) =>
-				modal.fileName.toLocaleLowerCase() ===
-				incomingFileName.toLocaleLowerCase()
-		);
-		if (isFileAlreadyExist) {
-			throw new Error('File Already Exist');
-		}
-		const updatedModels = [...this.models(), model];
-		const activeModelIndex = this.activeModelIndex + 1;
-		set({ models: () => updatedModels, activeModelIndex });
-	},
-	removeModal(fileName: string) {
-		set({
-			models: () =>
-				this.models().filter(
+	actions: {
+		addModel(model: editorTabs[number]) {
+			const incomingFileName = model.fileName;
+			const isFileAlreadyExist = store()
+				.models()
+				.some(
 					(modal) =>
-						modal.fileName.toLocaleUpperCase() === fileName.toLocaleUpperCase()
-				),
-		});
+						modal.fileName.toLocaleLowerCase() ===
+						incomingFileName.toLocaleLowerCase()
+				);
+			if (isFileAlreadyExist) {
+				throw new Error('File Already Exist');
+			}
+			const updatedModels = [...store().models(), model];
+			const activeModelIndex = store().activeModelIndex + 1;
+			set({ models: () => updatedModels, activeModelIndex });
+		},
+		removeModal(fileName: string) {
+			set({
+				models: () =>
+					store()
+						.models()
+						.filter(
+							(modal) =>
+								modal.fileName.toLocaleUpperCase() ===
+								fileName.toLocaleUpperCase()
+						),
+			});
+		},
+		changeActiveModal(modelIndex: number) {
+			set({ activeModelIndex: modelIndex });
+		},
 	},
 }));
 
 export const useGetModels = () => modelStore((store) => store.models());
 export const useGetActiveModel = () =>
 	modelStore((store) => store.models()[store.activeModelIndex]);
+export const useGetModelStoreActions = () =>
+	modelStore((store) => store.actions);
