@@ -1,5 +1,4 @@
 import {
-	DEFAULT_ACTIVE_MODEL_INDEX,
 	useGetActiveModel,
 	useGetModels,
 	useGetModelStoreActions,
@@ -14,7 +13,10 @@ import ReactIcon from '@/components/icons/React';
 import JavascriptIcon from '@/components/icons/Javascript';
 import TypescriptIcon from '@/components/icons/Typescript';
 import { allowedFileExtensions } from '../../types';
-import { getFileExtention, getLanguageFromFileExtension } from '../../utils';
+import { Trash2 } from 'lucide-react';
+import { getLanguageFromFileExtension } from '../../utils';
+import { Button } from '@radix-ui/themes';
+import { getFileExtention } from '@/util';
 
 const TabItem = (props: { fileName: string }) => {
 	const fileLanguageToIcon = {
@@ -39,13 +41,16 @@ const TabItem = (props: { fileName: string }) => {
 const TabsListSelect = () => {
 	const editorModels = useGetModels();
 	const activeEditorModel = useGetActiveModel();
-	const { changeActiveModal } = useGetModelStoreActions();
+	const { changeActiveModel, removeModel } = useGetModelStoreActions();
+	const activeModelIndex = editorModels.findIndex(
+		(model) => model.fileName === activeEditorModel.fileName
+	);
 
 	return (
 		<Select
-			defaultValue={DEFAULT_ACTIVE_MODEL_INDEX + ''}
+			value={activeModelIndex + ''}
 			onValueChange={(strigifyIndex) => {
-				changeActiveModal(parseInt(strigifyIndex));
+				changeActiveModel(parseInt(strigifyIndex));
 			}}
 		>
 			<SelectTrigger className="w-[180px]">
@@ -53,8 +58,23 @@ const TabsListSelect = () => {
 			</SelectTrigger>
 			<SelectContent>
 				{editorModels.map((model, index) => (
-					<SelectItem key={model.fileName + index} value={index + ''}>
-						<TabItem fileName={model.fileName} />
+					<SelectItem
+						className="block w-full"
+						key={model.fileName + index}
+						value={index + ''}
+					>
+						<div className="flex justify-between w-full gap-4">
+							<TabItem fileName={model.fileName} />
+							<Button
+								onMouseDown={() => {
+									removeModel(model.fileName);
+								}}
+								disabled={editorModels.length === 1}
+								size={'1'}
+							>
+								<Trash2 className="h-4 w-4 hover:text-rose-500" />
+							</Button>
+						</div>
 					</SelectItem>
 				))}
 			</SelectContent>
