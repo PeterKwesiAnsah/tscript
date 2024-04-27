@@ -1,22 +1,25 @@
 import React from 'react';
 import * as monaco from 'monaco-editor';
 import { useGetActiveModel } from './store/models';
+import defaultTheme from '@/monaco/themes/default.json';
 
 const EditorInstance = () => {
 	const activeModel = useGetActiveModel();
 	const createMonacoEditor = React.useCallback(
 		function (node: HTMLElement | null) {
+			monaco.editor.getModels().forEach((model) => model.dispose());
 			const model = monaco.editor.createModel(
 				activeModel.code!,
 				activeModel.language,
 				monaco.Uri.file(activeModel.fileName)
 			);
+			monaco.editor.defineTheme('mine', defaultTheme);
 
 			const sharedEditorOptions = {
 				minimap: { enabled: false },
 				automaticLayout: true,
 				scrollBeyondLastLine: false,
-				theme: 'vs-dark',
+				theme: 'mine',
 			};
 			node &&
 				monaco.editor.create(node, {
