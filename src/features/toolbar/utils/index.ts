@@ -1,10 +1,5 @@
 import { allowedFileExtensions } from '../types';
 
-export const getFileExtention = (fileName: string) => {
-	const fileNameParts = fileName.split('.');
-	return fileNameParts[fileNameParts.length - 1];
-};
-
 export const getLanguageFromFileExtension = (
 	fileExtension: allowedFileExtensions
 ) => {
