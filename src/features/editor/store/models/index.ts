@@ -1,19 +1,20 @@
 import { create } from 'zustand';
 import { editorTabs } from '../../components/tab/types';
+import { getEditorLanguageFromFileName, getInitialCode } from '../../utils';
 
 export const DEFAULT_ACTIVE_MODEL_INDEX = 0;
 
 const modelStore = create<{
-	models: () => editorTabs;
+	models: editorTabs;
 	activeModelIndex: number;
 	actions: {
-		addModel: (model: editorTabs[number]) => void;
-		removeModal: (fileName: string) => void;
-		changeActiveModal: (modelIndex: number) => void;
+		addModel: (fileName: string) => void;
+		removeModel: (fileName: string) => void;
+		changeActiveModel: (modelIndex: number) => void;
 	};
 }>((set, store) => ({
 	activeModelIndex: DEFAULT_ACTIVE_MODEL_INDEX,
-	models: () => [
+	models: [
 		{
 			fileName: 'index.js',
 			language: 'javascript',
@@ -22,46 +23,48 @@ const modelStore = create<{
 		{
 			fileName: 'index.ts',
 			language: 'typescript',
-			code: "function hello() {\n\talert('Hello world!');\n}",
+			code: "function hello() {\n\talert('Hello world Ganster!');\n}",
 		},
 	],
 	actions: {
-		addModel(model: editorTabs[number]) {
-			const incomingFileName = model.fileName;
-			const isFileAlreadyExist = store()
-				.models()
-				.some(
-					(modal) =>
-						modal.fileName.toLocaleLowerCase() ===
-						incomingFileName.toLocaleLowerCase()
-				);
+		addModel(fileName: string) {
+			const incomingFileName = fileName;
+			const isFileAlreadyExist = store().models.some(
+				(modal) =>
+					modal.fileName.toLocaleLowerCase() ===
+					incomingFileName.toLocaleLowerCase()
+			);
 			if (isFileAlreadyExist) {
 				throw new Error('File Already Exist');
 			}
-			const updatedModels = [...store().models(), model];
-			const activeModelIndex = store().activeModelIndex + 1;
-			set({ models: () => updatedModels, activeModelIndex });
+			const updatedModels = [
+				...store().models,
+				{
+					fileName: incomingFileName,
+					code: getInitialCode(),
+					language: getEditorLanguageFromFileName(incomingFileName),
+				},
+			];
+			const activeModelIndex = updatedModels.length - 1;
+			set({ models: updatedModels, activeModelIndex });
 		},
-		removeModal(fileName: string) {
+		removeModel(fileName: string) {
 			set({
-				models: () =>
-					store()
-						.models()
-						.filter(
-							(modal) =>
-								modal.fileName.toLocaleUpperCase() ===
-								fileName.toLocaleUpperCase()
-						),
+				models: store().models.filter(
+					(modal) =>
+						modal.fileName.toLocaleUpperCase() !== fileName.toLocaleUpperCase()
+				),
+				activeModelIndex: store().models.length - 2,
 			});
 		},
-		changeActiveModal(modelIndex: number) {
+		changeActiveModel(modelIndex: number) {
 			set({ activeModelIndex: modelIndex });
 		},
 	},
 }));
 
-export const useGetModels = () => modelStore((store) => store.models());
+export const useGetModels = () => modelStore((store) => store.models);
 export const useGetActiveModel = () =>
-	modelStore((store) => store.models()[store.activeModelIndex]);
+	modelStore((store) => store.models[store.activeModelIndex]);
 export const useGetModelStoreActions = () =>
 	modelStore((store) => store.actions);
