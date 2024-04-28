@@ -6,7 +6,7 @@ export type sourceDep =
 	| { type: 'absolute'; parentPath: string; sourceDepPath: sourceDepPath }
 	| { type: 'relative'; parentPath: string; sourceDepPath: sourceDepPath };
 
-const exportImportRegex =
+export const exportImportRegex =
 	/(?:import|export)\s+(?:[^'"]*\s+from\s+)?['"]([^'"]+)['"]/g;
 /**Parses Source strings into an array of import paths */
 export function parseSourceToDepPath(sourceContent: string): sourceDepPath[] {

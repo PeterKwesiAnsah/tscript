@@ -10,8 +10,11 @@ import {
 import { resolvePackageTypesToURL } from './resolvePackageTypesSource.ts';
 import { PackageJson } from './types/index.ts';
 const sample_test_source = `
-	import react from "ts-match";
+	import react from "react";
 `;
+
+const commentRegex = /\/\*[\s\S]*?\*\/|\/\/.*/g;
+
 function handleResponse(response: Response): Promise<PackageJson> {
 	if (!response.ok) {
 		return Promise.resolve({} as PackageJson);
@@ -20,7 +23,8 @@ function handleResponse(response: Response): Promise<PackageJson> {
 }
 //https://cdn.jsdelivr.net/npm/ts-match/lib/index.d.ts"
 async function resolveDTFiles(sourceContent: string, parentTypesPath = '') {
-	const dep = parseSourceToDepPath(sourceContent);
+	const dep = parseSourceToDepPath(sourceContent.replace(commentRegex, ''));
+	//TODO: <reference dependecies />
 	const sourceDep = parseSourceToDep(dep, parentTypesPath);
 	for (const modulePath of sourceDep) {
 		if (modulePath.type === 'package') {
@@ -41,20 +45,15 @@ async function resolveDTFiles(sourceContent: string, parentTypesPath = '') {
 					);
 				})(),
 			]);
-			// const pathToTypes: string | undefined =
-			// 	JSON.parse(pkgFromJsDeliv).types || JSON.parse(pkgFromDT).types;
-			// if (pathToTypes) {
-			// 	//fetch where the types is defined
-			// }
-			// console.log(pathToTypes);
-			console.log(resolvePackageTypesToURL([pkgFromJsDeliv, pkgFromDT]));
-			//const pkg = await ;
-			//const pkgJSON = JSON.parse(pkg);
-			//console.log(pkgJSON.types);
+			const cdnURL = resolvePackageTypesToURL([pkgFromJsDeliv, pkgFromDT]);
+			//console.log(cdnURL);
+			const packageDeclarationFile = await fetch(cdnURL).then((res) =>
+				res.text()
+			);
+			sourceContent = resolveDTFiles(packageDeclarationFile) + sourceContent;
 		}
 	}
+	return sourceContent;
 }
-//https://cdn.jsdelivr.net/npm/ts-match/   + package.json
-//https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/master/types + /react/package.json
 
 resolveDTFiles(sample_test_source);
