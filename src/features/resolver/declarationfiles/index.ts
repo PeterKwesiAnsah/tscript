@@ -9,9 +9,9 @@ import {
 } from '../utils/urls/index.ts';
 import { resolvePackageTypesToURL } from './resolvePackageTypesSource.ts';
 import { PackageJson } from './types/index.ts';
-const sample_test_source = `
-	import react from "react";
-`;
+// const sample_test_source = `
+// 	import react from "axios";
+// `;
 
 const commentRegex = /\/\*[\s\S]*?\*\/|\/\/.*/g;
 
@@ -22,7 +22,11 @@ function handleResponse(response: Response): Promise<PackageJson> {
 	return response.json();
 }
 //https://cdn.jsdelivr.net/npm/ts-match/lib/index.d.ts"
-async function resolveDTFiles(sourceContent: string, parentTypesPath = '') {
+export async function resolveDTFiles(
+	sourceContent: string,
+	parentTypesPath = ''
+) {
+	//console.log(sourceContent);
 	const dep = parseSourceToDepPath(sourceContent.replace(commentRegex, ''));
 	//TODO: <reference dependecies />
 	const sourceDep = parseSourceToDep(dep, parentTypesPath);
@@ -50,10 +54,11 @@ async function resolveDTFiles(sourceContent: string, parentTypesPath = '') {
 			const packageDeclarationFile = await fetch(cdnURL).then((res) =>
 				res.text()
 			);
-			sourceContent = resolveDTFiles(packageDeclarationFile) + sourceContent;
+			sourceContent =
+				(await resolveDTFiles(packageDeclarationFile)) + sourceContent;
 		}
 	}
 	return sourceContent;
 }
 
-resolveDTFiles(sample_test_source);
+//resolveDTFiles(sample_test_source);
