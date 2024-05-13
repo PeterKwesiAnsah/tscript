@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import AddTab from './components/AddTab';
 import TabsListSelect from './components/TabsListSelect';
+import AuthorConfig from './components/AuthorConfig';
 
 const index = () => {
 	return (
@@ -10,7 +11,11 @@ const index = () => {
 					<TabsListSelect />
 					<AddTab />
 				</div>
-				<Button className="rounded-xl">Console</Button>
+				<div className='flex'>
+					<AuthorConfig />
+					<Button className="rounded-xl">Console</Button>
+
+				</div>
 			</nav>
 		</header>
 	);
