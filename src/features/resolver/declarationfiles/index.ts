@@ -1,7 +1,5 @@
-import {
-	parseSourceToDep,
-	parseSourceToDepPath,
-} from '../core/parseSource/index.ts';
+import { depGraph } from '../core/depGraph.ts';
+import { parseSourceToDep, parseSourceToDepPath } from '../core/parseSource.ts';
 import '../fetch/index.ts';
 import {
 	getDefinitelyTypedBaseURL,
@@ -54,11 +52,15 @@ export async function resolveDTFiles(
 			const packageDeclarationFile = await fetch(cdnURL).then((res) =>
 				res.text()
 			);
-			sourceContent =
-				(await resolveDTFiles(packageDeclarationFile)) + sourceContent;
+			// //TODO: get graph dep first
+			// sourceContent =
+			// 	(await resolveDTFiles(packageDeclarationFile)) + sourceContent;
 		}
 	}
 	return sourceContent;
 }
 
-//resolveDTFiles(sample_test_source);
+depGraph(`import zustand from "zustand";`).then((deps) => {
+	console.log(deps);
+	//console.log(new Set(deps).size);
+});
