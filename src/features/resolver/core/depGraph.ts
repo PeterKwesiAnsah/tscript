@@ -1,4 +1,8 @@
-import { parseSourceToDep, parseSourceToDepPath } from './parseSource.ts';
+import {
+	parseSourceToDep,
+	parseSourceToDepPath,
+	sourceDep,
+} from './parseSource.ts';
 import '../fetch/index.ts';
 import {
 	getDefinitelyTypedBaseURL,
@@ -12,6 +16,8 @@ import path from 'path-browserify';
 // const sample_test_source = `
 // 	import react from "axios";
 // `;
+
+export const num = 1;
 
 const commentRegex = /\/\*[\s\S]*?\*\/|\/\/.*/g;
 
@@ -27,6 +33,21 @@ function handleResponse<resType>(
 	]();
 }
 
+function getSourceDepPathname(dep: sourceDep) {
+	let cdnURL =
+		getJSDelivURLOrigin() + path.join(dep.parentDir, dep.sourceDepPath);
+	if (!cdnURL.endsWith('.d.ts')) {
+		cdnURL = cdnURL + '.d.ts';
+	}
+	//console.log(cdnURL);
+	//circular dep
+
+	//return sourceDep;
+
+	const pathname = new URL(cdnURL).pathname;
+	return [pathname, cdnURL];
+}
+
 function createSourceDep(sourceContent: string, parentTypesPath = '') {
 	const dep = parseSourceToDepPath(sourceContent.replace(commentRegex, ''));
 	//TODO: <reference dependecies />
@@ -38,14 +59,12 @@ export async function depGraph(
 	entrySourceContent: string,
 	parentTypesPath = ''
 ) {
-	//console.log(sourceContent);
-
 	const sourceDep = createSourceDep(entrySourceContent, parentTypesPath);
-
 	for (const modulePath of sourceDep) {
 		if (modulePath.type === 'package') {
 			let packageDeclarationFile: string = '';
 			let rootTypesDir = '';
+			let rootTypePathname = '';
 			const scopedPackagesRegex =
 				/^@?([a-zA-Z0-9-_]+)\/([a-zA-Z0-9-_]+)(\/[a-zA-Z0-9-_]+)*$/;
 			if (!modulePath.sourceDepPath.match(scopedPackagesRegex)) {
@@ -68,10 +87,10 @@ export async function depGraph(
 						);
 					})(),
 				]);
-				//console.log('path', path.dirname('./index.ts'));
 				const cdnURL = resolvePackageTypesToURL([pkgFromJsDeliv, pkgFromDT]);
-				const pathname = new URL(cdnURL).pathname;
-				rootTypesDir = path.dirname(pathname);
+				rootTypePathname = new URL(cdnURL).pathname;
+
+				rootTypesDir = path.dirname(rootTypePathname);
 				packageDeclarationFile = await fetch(cdnURL).then((res) => {
 					if (!res.ok) {
 						return '';
@@ -79,8 +98,6 @@ export async function depGraph(
 					return res.text();
 				});
 			} else {
-				//1.step make two requests to package or @types/package (at least one should exist)
-				//2. you can fetch base package package json to know if it has types or not
 				const [dtsPackage, dtsTypesPackage] = await Promise.all([
 					(async () => {
 						return handleResponse<string>(
@@ -101,39 +118,32 @@ export async function depGraph(
 				]);
 				packageDeclarationFile = dtsPackage || dtsTypesPackage;
 				if (dtsPackage) {
-					rootTypesDir = path.dirname(
-						new URL(getJSDelivBaseURL() + `${modulePath.sourceDepPath}.d.ts`)
-							.pathname
-					);
+					rootTypePathname = new URL(
+						getJSDelivBaseURL() + `${modulePath.sourceDepPath}.d.ts`
+					).pathname;
+					rootTypesDir = path.dirname(rootTypePathname);
 				} else if (dtsTypesPackage) {
-					rootTypesDir = path.dirname(
-						new URL(
-							getDefinitelyTypedBaseURL() + `${modulePath.sourceDepPath}.d.ts`
-						).pathname
-					);
+					rootTypePathname = new URL(
+						getDefinitelyTypedBaseURL() + `${modulePath.sourceDepPath}.d.ts`
+					).pathname;
+					rootTypesDir = path.dirname(rootTypePathname);
 				}
 			}
-
-			//console.log(cdnURL);
-
 			//child dependencies
 			const childSourceDependcies = createSourceDep(
 				packageDeclarationFile,
 				rootTypesDir //should be path to root dir
 			);
+			//console.log(childSourceDependcies);
 			for (const childSourceDep of childSourceDependcies) {
+				//if you don't have a parentFileName, means you are an entry file
+				childSourceDep['parentFilePathname'] = rootTypePathname;
 				sourceDep.push(childSourceDep);
 			}
 		} else if (modulePath.type === 'relative') {
-			//const shippedTypes = !modulePath.parentPath.includes('@types');
-			let cdnURL =
-				getJSDelivURLOrigin() +
-				path.join(modulePath.parentPath, modulePath.sourceDepPath);
-			if (!cdnURL.endsWith('.d.ts')) {
-				cdnURL = cdnURL + '.d.ts';
-			}
-			//const cdnURL = resolvePackageTypesToURL([pkgFromJsDeliv, pkgFromDT]);
-			const pathname = new URL(cdnURL).pathname;
+			//only works ./ i.e the both the source and dependent live in the same directory
+			//TODO:../
+			const [pathname, cdnURL] = getSourceDepPathname(modulePath);
 			const rootTypesDir = path.dirname(pathname);
 			const packageDeclarationFile = await fetch(cdnURL).then((res) => {
 				if (!res.ok) {
@@ -141,26 +151,26 @@ export async function depGraph(
 				}
 				return res.text();
 			});
-			// console.log({
-			// 	rootTypesDir,
-			// 	packageDeclarationFile,
-			// });
 			const childSourceDependcies = createSourceDep(
 				packageDeclarationFile,
 				rootTypesDir //should be path to root dir
 			);
 			for (const childSourceDep of childSourceDependcies) {
+				//absolute imports are the truth
+				//if a child dep depends on it parent then we have circular deps
+				//a parent ideally should depend on a child not the other way round
+
+				//naive circular dep solution?
+				if (
+					modulePath.parentFilePathname ===
+					getSourceDepPathname(childSourceDep)[0]
+				) {
+					continue;
+				}
+				childSourceDep['parentFilePathname'] = pathname;
+
 				sourceDep.push(childSourceDep);
 			}
-			//console.log(cdnURL);
-			// full url=parentroottypesDir+sourceDepth+'.d.ts'
-			// const childSourceDependcies = createSourceDep(
-			// 	packageDeclarationFile,
-			// 	rootTypesDir //should be path to root dir
-			// );
-			// for (const childSourceDep of childSourceDependcies) {
-			// 	sourceDep.push(childSourceDep);
-			// }
 		}
 	}
 	return sourceDep;
