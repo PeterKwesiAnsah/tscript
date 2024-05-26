@@ -17,8 +17,6 @@ import path from 'path-browserify';
 // 	import react from "axios";
 // `;
 
-export const num = 1;
-
 const commentRegex = /\/\*[\s\S]*?\*\/|\/\/.*/g;
 
 function handleResponse<resType>(
@@ -49,7 +47,8 @@ function getSourceDepPathname(dep: sourceDep) {
 }
 
 function createSourceDep(sourceContent: string, parentTypesPath = '') {
-	const dep = parseSourceToDepPath(sourceContent.replace(commentRegex, ''));
+	const strippedSourceContent = sourceContent.replace(commentRegex, '');
+	const dep = parseSourceToDepPath(strippedSourceContent);
 	//TODO: <reference dependecies />
 	const sourceDep = parseSourceToDep([...new Set(dep)], parentTypesPath);
 	return sourceDep;
@@ -97,6 +96,7 @@ export async function depGraph(
 					}
 					return res.text();
 				});
+				modulePath.sourceContent = packageDeclarationFile;
 			} else {
 				const [dtsPackage, dtsTypesPackage] = await Promise.all([
 					(async () => {
@@ -128,6 +128,7 @@ export async function depGraph(
 					).pathname;
 					rootTypesDir = path.dirname(rootTypePathname);
 				}
+				modulePath.sourceContent = packageDeclarationFile;
 			}
 			//child dependencies
 			const childSourceDependcies = createSourceDep(
@@ -151,6 +152,7 @@ export async function depGraph(
 				}
 				return res.text();
 			});
+			modulePath.sourceContent = packageDeclarationFile;
 			const childSourceDependcies = createSourceDep(
 				packageDeclarationFile,
 				rootTypesDir //should be path to root dir

@@ -3,8 +3,12 @@ import * as monaco from 'monaco-editor';
 import { useGetActiveModel } from './store/models';
 import defaultTheme from '@/monaco/themes/default.json';
 import { resolveDTFiles } from '../resolver/declarationfiles';
-import { accentColors } from '@radix-ui/themes/props';
 import path from 'path-browserify';
+import {
+	// parseSourceToDep,
+	// parseSourceToDepPath,
+	parseSourceToOriginalDep,
+} from '../resolver/core/parseSource';
 //import path from 'path-browserify';
 
 let timeoutId: NodeJS.Timeout;
@@ -27,9 +31,19 @@ const EditorInstance = () => {
 				return;
 			}
 			const rootDir = path.dirname(model.uri.toString());
-			const dts = await resolveDTFiles(modelContent);
-			const libUri = rootDir + '/node_modules/axios/index.d.ts';
-			monaco.languages.typescript.typescriptDefaults.addExtraLib(dts, libUri);
+
+			for (const dep of parseSourceToOriginalDep(modelContent)) {
+				// if (dep.type !== 'package') continue;
+				//we can link other ts modules with this??
+				const libUri =
+					rootDir + `/node_modules/${dep.importResource}/index.d.ts`;
+				const packageResolvedDTS = await resolveDTFiles(dep.importStatement);
+
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(
+					packageResolvedDTS,
+					libUri
+				);
+			}
 		}, 2000);
 	}
 
@@ -52,13 +66,6 @@ const EditorInstance = () => {
 				scrollBeyondLastLine: false,
 				theme: 'shadcnTheme',
 			};
-			//console.log(fileURI.toString());
-
-			// const editor = monaco.editor.create(node, {
-			// 	value: activeModel.code!,
-			// 	language: activeModel.language,
-			// 	...sharedEditorOptions,
-			// });
 			const editor = monaco.editor.create(node, {
 				model,
 				...sharedEditorOptions,
