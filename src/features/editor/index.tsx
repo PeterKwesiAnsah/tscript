@@ -31,18 +31,28 @@ const EditorInstance = () => {
 				return;
 			}
 			const rootDir = path.dirname(model.uri.toString());
+			const extraLibs =
+				monaco.languages.typescript.typescriptDefaults.getExtraLibs();
 
 			for (const dep of parseSourceToOriginalDep(modelContent)) {
 				// if (dep.type !== 'package') continue;
 				//we can link other ts modules with this??
 				const libUri =
 					rootDir + `/node_modules/${dep.importResource}/index.d.ts`;
+				const findExtraLib = extraLibs[libUri];
+				if (findExtraLib) continue;
+
+				//TODO: cache dts files (offline)
 				const packageResolvedDTS = await resolveDTFiles(dep.importStatement);
 
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(
 					packageResolvedDTS,
 					libUri
 				);
+				/**
+				 * TODO:using monaco.languages.typescript.typescriptDefaults.getExtraLibs() an extra lib has already been added
+				 * prevening uneccesary api calls
+				 * */
 			}
 		}, 2000);
 	}
