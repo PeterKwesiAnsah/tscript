@@ -50,7 +50,6 @@ export function parseSourceToOriginalDep(sourceContent: string) {
 	}[] = [];
 	let match;
 	while ((match = exportImportRegex.exec(sourceContent)) !== null) {
-		//console.log(match);
 		dependencies.push({
 			importStatement: match[0],
 			importResource: match[1],
@@ -63,7 +62,6 @@ export function parseSourceToDepPath(sourceContent: string): sourceDepPath[] {
 	const dependencies: sourceDepPath[] = [];
 	let match;
 	while ((match = exportImportRegex.exec(sourceContent)) !== null) {
-		console.log(match);
 		dependencies.push(match[1]);
 	}
 	return dependencies;

@@ -3,6 +3,7 @@ import * as monaco from 'monaco-editor';
 import { useGetActiveModel } from './store/models';
 import defaultTheme from '@/monaco/themes/default.json';
 import { resolveDTFiles } from '../resolver/declarationfiles';
+
 import path from 'path-browserify';
 import {
 	// parseSourceToDep,
@@ -33,6 +34,7 @@ const EditorInstance = () => {
 			const rootDir = path.dirname(model.uri.toString());
 			const extraLibs =
 				monaco.languages.typescript.typescriptDefaults.getExtraLibs();
+			console.log(parseSourceToOriginalDep(modelContent));
 
 			for (const dep of parseSourceToOriginalDep(modelContent)) {
 				// if (dep.type !== 'package') continue;
@@ -44,6 +46,7 @@ const EditorInstance = () => {
 
 				//TODO: cache dts files (offline)
 				const packageResolvedDTS = await resolveDTFiles(dep.importStatement);
+				console.log(packageResolvedDTS.includes('renderToReadableStream'));
 
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(
 					packageResolvedDTS,
@@ -67,7 +70,7 @@ const EditorInstance = () => {
 				activeModel.language,
 				fileURI
 			);
-
+			//@ts-expect-error Type 'string' is not assignable to type 'BuiltinTheme'.
 			monaco.editor.defineTheme('shadcnTheme', defaultTheme);
 
 			const sharedEditorOptions = {
