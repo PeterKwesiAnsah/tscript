@@ -3,7 +3,7 @@ import {
 	getJSDelivBaseURL,
 } from '../utils/urls/index.ts';
 import { PackageJson } from './types/index.ts';
-import * as path from 'path';
+import * as path from 'path-browserify';
 
 //Takes in Package JSONs resolve the types path to a remote URL
 export function resolvePackageTypesToURL(pkgs: [PackageJson, PackageJson]) {
