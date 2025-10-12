@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type ConsoleMessage = {
+export type ConsoleMessage = {
 	method: keyof Console;
 	args: any[];
 	timestamp: number;
