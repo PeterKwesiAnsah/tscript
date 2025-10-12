@@ -5,8 +5,12 @@ import {
 import { PackageJson } from './types/index.ts';
 import * as path from 'path-browserify';
 
-//Takes in Package JSONs resolve the types path to a remote URL
-export function resolvePackageTypesToURL(pkgs: [PackageJson, PackageJson]) {
+/**
+ *
+ * Takes in Package JSONs resolve the types path to a remote URL
+ */
+
+export function resolveRootPackageTypesToURL(pkgs: [PackageJson, PackageJson]) {
 	let resolvedTypesPathToSource = '';
 	for (const packageJson of pkgs) {
 		const pathToTypes = packageJson.types;
