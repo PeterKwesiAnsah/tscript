@@ -52,7 +52,7 @@ const AddTab = () => {
 							// 	borderBottom: '1px solid',
 							// }}
 							autoFocus
-							className="w-[150px] border-solid rounded-none border-0 border-b-2"
+							className="w-[150px] border-solid rounded-none border-0 border-b-2 invalid:border-red-500"
 							placeholder="New File Name"
 							type="text"
 							name="fileName"
