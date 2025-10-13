@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { editorTabs } from '../../components/tab/types';
 import { getEditorLanguageFromFileName, getInitialCode } from '../../utils';
 
-export const DEFAULT_ACTIVE_MODEL_INDEX = 0;
+export const DEFAULT_ACTIVE_MODEL_INDEX = 1;
 
 const modelStore = create<{
 	models: editorTabs;
@@ -23,7 +23,7 @@ const modelStore = create<{
 		{
 			fileName: 'index.ts',
 			language: 'typescript',
-			code: "function hello() {\n\talert('Hello world Ganster!');\n}",
+			code: "function hello() {\n\talert('Hello world!');\n}",
 		},
 	],
 	actions: {
