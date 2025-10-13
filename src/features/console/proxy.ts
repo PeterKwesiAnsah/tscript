@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type ConsoleMessage = {
-	method: keyof Console;
-	args: any[];
-	timestamp: number;
-};
+
+import { ConsoleMessage, ConsoleMethod } from ".";
 
 export class ConsoleProxy {
 	private originalConsole: Partial<Console> = {};
@@ -14,7 +11,7 @@ export class ConsoleProxy {
 	}
 
 	private patch() {
-		const methods: (keyof Console)[] = [
+		const methods: ConsoleMethod[] = [
 			"log",
 			"info",
 			"warn",
@@ -25,9 +22,7 @@ export class ConsoleProxy {
 		];
 
 		for (const method of methods) {
-			// @ts-expect-error Keep the original reference
 			this.originalConsole[method] = console[method];
-			//@ts-expect-error missing function signature
 			console[method] = (...args: any[]) => {
 				// Notify listeners
 				const message: ConsoleMessage = {
