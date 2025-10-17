@@ -11,9 +11,9 @@ import {
 import { resolveRootPackageTypesToURL } from "./resolvePackageTypesSource.ts";
 import { PackageJson } from "./types/index.ts";
 import { parseSourceToDep, parseSourceToDepPath } from "../core/parseSource.ts";
-const sample_test_source = `
-	import {create} from "zustand";
-`;
+// const sample_test_source = `
+// 	import {create} from "zustand";
+// `;
 
 const commentRegex = /\/\*[\s\S]*?\*\/|\/\/.*/g;
 
@@ -36,12 +36,12 @@ function resolveRelativePathToFullURL(
 //https://cdn.jsdelivr.net/npm/ts-match/lib/index.d.ts"
 export async function resolveDTFiles(
 	sourceContent: string,
-	parentTypesPath = "",
-	resolvedDepList = new Set()
+	parentTypesPath = ""
+	//resolvedDepList = new Set()
 ) {
 	//console.log(sourceContent);
 	const dep = parseSourceToDepPath(sourceContent.replace(commentRegex, ""));
-	console.log(dep);
+	//console.log(dep);
 	//TODO: <reference dependecies />
 	const sourceDep = parseSourceToDep(dep, parentTypesPath);
 	for (const modulePath of sourceDep) {
