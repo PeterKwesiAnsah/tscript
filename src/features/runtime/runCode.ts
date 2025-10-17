@@ -4,7 +4,7 @@ export default async function (code: string) {
 	try {
 		await import(url);
 	} catch (err) {
-		console.error("Runtime error:", err);
+		console.error("Runtime error:", (err as Error).message);
 	} finally {
 		URL.revokeObjectURL(url);
 	}
