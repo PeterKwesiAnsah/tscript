@@ -7,9 +7,12 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"resolve": "node --loader ts-node/esm ./src/features/resolver/declarationfiles/index.ts"
 	},
 	"dependencies": {
+		"@babel/parser": "^7.24.4",
+		"@babel/traverse": "^7.24.1",
 		"@radix-ui/react-select": "^2.0.0",
 		"@radix-ui/react-slot": "^1.0.2",
 		"@radix-ui/themes": "^3.0.2",
@@ -17,6 +20,7 @@
 		"clsx": "^2.1.0",
 		"lucide-react": "^0.365.0",
 		"monaco-editor": "^0.46.0",
+		"node-fetch": "^3.3.2",
 		"path-browserify": "^1.0.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
@@ -25,7 +29,7 @@
 		"zustand": "^4.5.1"
 	},
 	"devDependencies": {
-		"@types/jest": "^29.5.12",
+		"@types/babel__traverse": "^7.20.5",
 		"@types/node": "^20.12.5",
 		"@types/path-browserify": "^1.0.2",
 		"@types/react": "^18.2.43",
@@ -40,7 +44,7 @@
 		"jest": "^29.7.0",
 		"postcss": "^8.4.38",
 		"tailwindcss": "^3.4.3",
-		"ts-jest": "^29.1.4",
+		"ts-node": "^10.9.1",
 		"typescript": "^5.2.2",
 		"vite": "^5.0.8"
 	}

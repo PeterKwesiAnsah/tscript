@@ -2,18 +2,18 @@ import {
 	parseSourceToDep,
 	parseSourceToDepPath,
 	sourceDep,
-} from './parseSource.ts';
-import '../fetch/index.ts';
+} from "./parseSource.ts";
+import "../fetch/index.ts";
 import {
 	getDefinitelyTypedBaseURL,
 	getJSDelivBaseURL,
 	getJSDelivURLOrigin,
-} from '../utils/urls/index.ts';
+} from "../utils/urls/index.ts";
 
-import { PackageJson } from '../declarationfiles/types/index.ts';
-import { resolvePackageTypesToURL } from '../declarationfiles/resolvePackageTypesSource.ts';
-import path from 'path-browserify';
-import { getReferencePaths } from './getReferencePaths.ts';
+import { PackageJson } from "../declarationfiles/types/index.ts";
+import { resolveRootPackageTypesToURL } from "../declarationfiles/resolvePackageTypesSource.ts";
+import path from "path-browserify";
+import { getReferencePaths } from "./getReferencePaths.ts";
 // const sample_test_source = `
 // 	import react from "axios";
 // `;
@@ -28,13 +28,13 @@ function handleResponse<resType>(
 		return Promise.resolve(defaultPromiseFailedValue);
 	}
 	return response[
-		typeof defaultPromiseFailedValue === 'string' ? 'text' : 'json'
+		typeof defaultPromiseFailedValue === "string" ? "text" : "json"
 	]();
 }
 
 function formatDTSourceURL(cdnURLPathname: string) {
 	const parsePath = path.parse(cdnURLPathname);
-	return path.join(parsePath.dir, parsePath.name) + '.d.ts';
+	return path.join(parsePath.dir, parsePath.name) + ".d.ts";
 }
 
 function getSourceDepPathname(dep: sourceDep) {
@@ -45,8 +45,8 @@ function getSourceDepPathname(dep: sourceDep) {
 	return [pathname, cdnURL];
 }
 
-function createSourceDep(sourceContent: string, parentTypesPath = '') {
-	const strippedSourceContent = sourceContent.replace(commentRegex, '');
+function createSourceDep(sourceContent: string, parentTypesPath = "") {
+	const strippedSourceContent = sourceContent.replace(commentRegex, "");
 	const dep = parseSourceToDepPath(strippedSourceContent);
 	const referenceDeps = getReferencePaths(strippedSourceContent);
 	const sourceDep = parseSourceToDep(
@@ -60,24 +60,24 @@ function createSourceDep(sourceContent: string, parentTypesPath = '') {
 //TODO: Need to support  multiple parent directories
 export async function depGraph(
 	entrySourceContent: string,
-	parentTypesPath = ''
+	parentTypesPath = ""
 ) {
 	const sourceDep = createSourceDep(entrySourceContent, parentTypesPath);
 	for (const modulePath of sourceDep) {
-		if (modulePath.type === 'package') {
+		if (modulePath.type === "package") {
 			//TODO:we always fetch package JSON of package
-			let packageDeclarationFile: string = '';
-			let rootTypesDir = '';
-			let rootTypePathname = '';
+			let packageDeclarationFile: string = "";
+			let rootTypesDir = "";
+			let rootTypePathname = "";
 			/**
 			 * 1.scopedPackage Eg: @x/y
 			 * 2.packageWithSubModule Eg: x/y
 			 * 3.package Eg: x
 			 *
 			 */
-			if (modulePath.sourceDepPath.startsWith('@')) {
+			if (modulePath.sourceDepPath.startsWith("@")) {
 				//scopedPackage
-				const restOfPath = modulePath.sourceDepPath.split('/').slice(2);
+				const restOfPath = modulePath.sourceDepPath.split("/").slice(2);
 				let cdnURL = getJSDelivBaseURL();
 				if (restOfPath.length === 0) {
 					const pkgFromJsDeliv = await (async () => {
@@ -93,19 +93,19 @@ export async function depGraph(
 					cdnURL =
 						cdnURL +
 						formatDTSourceURL(
-							path.join(modulePath.sourceDepPath, pkgFromJsDeliv.types || '')
+							path.join(modulePath.sourceDepPath, pkgFromJsDeliv.types || "")
 						);
 				} else {
 					cdnURL + formatDTSourceURL(modulePath.sourceDepPath);
 				}
 				const res = await fetch(cdnURL);
-				packageDeclarationFile = await handleResponse(res, '');
+				packageDeclarationFile = await handleResponse(res, "");
 				rootTypePathname = new URL(cdnURL).pathname;
 				rootTypesDir = path.dirname(rootTypePathname);
 				modulePath.sourceContent = packageDeclarationFile;
-			} else if (modulePath.sourceDepPath.includes('/')) {
+			} else if (modulePath.sourceDepPath.includes("/")) {
 				//packageWithSubModule
-				const [rootPackageDir] = modulePath.sourceDepPath.split('/');
+				const [rootPackageDir] = modulePath.sourceDepPath.split("/");
 				const pkgFromJsDeliv = await (async () => {
 					return handleResponse<PackageJson>(
 						await fetch(getJSDelivBaseURL() + `${rootPackageDir}/package.json`),
@@ -120,7 +120,7 @@ export async function depGraph(
 						formatDTSourceURL(modulePath.sourceDepPath);
 				}
 				const res = await fetch(cdnURL);
-				packageDeclarationFile = await handleResponse(res, '');
+				packageDeclarationFile = await handleResponse(res, "");
 				rootTypePathname = new URL(cdnURL).pathname;
 				rootTypesDir = path.dirname(rootTypePathname);
 				modulePath.sourceContent = packageDeclarationFile;
@@ -146,13 +146,16 @@ export async function depGraph(
 						);
 					})(),
 				]);
-				const cdnURL = resolvePackageTypesToURL([pkgFromJsDeliv, pkgFromDT]);
+				const cdnURL = resolveRootPackageTypesToURL([
+					pkgFromJsDeliv,
+					pkgFromDT,
+				]);
 				//TODO: find out why cdnURL is empty sometimes
 				if (cdnURL) {
 					rootTypePathname = new URL(cdnURL).pathname;
 					rootTypesDir = path.dirname(rootTypePathname);
 					const res = await fetch(cdnURL);
-					packageDeclarationFile = await handleResponse(res, '');
+					packageDeclarationFile = await handleResponse(res, "");
 					modulePath.sourceContent = packageDeclarationFile;
 				}
 			}
@@ -163,16 +166,16 @@ export async function depGraph(
 			);
 			for (const childSourceDep of childSourceDependcies) {
 				//if you don't have a parentFileName, means you are an entry file
-				childSourceDep['parentFilePathname'] = rootTypePathname;
+				childSourceDep["parentFilePathname"] = rootTypePathname;
 				sourceDep.push(childSourceDep);
 			}
-		} else if (modulePath.type === 'relative') {
+		} else if (modulePath.type === "relative") {
 			//only works ./ i.e the both the source and dependent live in the same directory
 			//TODO: support ../ and others
 			const [pathname, cdnURL] = getSourceDepPathname(modulePath);
 			const rootTypesDir = path.dirname(pathname);
 			const res = await fetch(cdnURL);
-			const packageDeclarationFile = await handleResponse(res, '');
+			const packageDeclarationFile = await handleResponse(res, "");
 			modulePath.sourceContent = packageDeclarationFile;
 			const childSourceDependcies = createSourceDep(
 				packageDeclarationFile,
@@ -190,7 +193,7 @@ export async function depGraph(
 				) {
 					continue;
 				}
-				childSourceDep['parentFilePathname'] = pathname;
+				childSourceDep["parentFilePathname"] = pathname;
 
 				sourceDep.push(childSourceDep);
 			}

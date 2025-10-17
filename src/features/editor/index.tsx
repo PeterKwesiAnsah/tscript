@@ -92,7 +92,13 @@ const EditorInstance = () => {
 		},
 		[activeModel]
 	);
-	return <div ref={createMonacoEditor} className="h-screen w-[70%]"></div>;
+	return (
+		<div
+			id="editor_container"
+			ref={createMonacoEditor}
+			className="h-screen w-full transition-all duration-300 ease-in-out"
+		></div>
+	);
 };
 
 export default EditorInstance;
