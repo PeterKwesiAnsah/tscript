@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { editorTabs } from '../../components/tab/types';
-import { getEditorLanguageFromFileName, getInitialCode } from '../../utils';
+import { create } from "zustand";
+import { editorTabs } from "../../components/tab/types";
+import { getEditorLanguageFromFileName, getInitialCode } from "../../utils";
 
 export const DEFAULT_ACTIVE_MODEL_INDEX = 1;
 
@@ -16,14 +16,14 @@ const modelStore = create<{
 	activeModelIndex: DEFAULT_ACTIVE_MODEL_INDEX,
 	models: [
 		{
-			fileName: 'index.js',
-			language: 'javascript',
-			code: "function hello() {\n\talert('Hello world!');\n}",
+			fileName: "index.js",
+			language: "javascript",
+			code: "function hello() {\n\tconsole.log('Hello world!');\n}",
 		},
 		{
-			fileName: 'index.ts',
-			language: 'typescript',
-			code: "function hello() {\n\talert('Hello world!');\n}",
+			fileName: "index.ts",
+			language: "typescript",
+			code: "function hello() {\n\tconsole.log('Hello world!');\n}",
 		},
 	],
 	actions: {
@@ -35,7 +35,7 @@ const modelStore = create<{
 					incomingFileName.toLocaleLowerCase()
 			);
 			if (isFileAlreadyExist) {
-				throw new Error('File Already Exist');
+				throw new Error("File Already Exist");
 			}
 			const updatedModels = [
 				...store().models,
